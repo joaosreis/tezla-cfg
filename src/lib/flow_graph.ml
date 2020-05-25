@@ -161,15 +161,16 @@ module Cfg = struct
     let open Batteries in
     let graph = create () in
     let pBlocks = Hashtbl.create 10 in
-    let p_tezla = Tezla.Converter.convert_program p in
+    let counter = ref (-1) in
+    let p_tezla = Tezla.Converter.convert_program counter p in
     let add_edge (i, j) = connect graph i j in
     let () =
       let open Flow in
-      let { nodes; flow; _ } = flow p_tezla in
+      let { nodes; flow; init_ht; final_ht; _ } = flow counter p_tezla in
       let () = Set.iter (fun b -> add graph "" b) nodes in
-      let init = init p_tezla in
+      let init = init init_ht p_tezla in
       let () = extremal graph init in
-      let finals = final p_tezla in
+      let finals = final final_ht p_tezla in
       let () = Set.iter (fun n -> extremal graph n) finals in
       let () = Hashtbl.replace pBlocks "" nodes in
       Set.iter add_edge flow

@@ -1,9 +1,0 @@
-(executables
-  (names main)
-  (libraries tezla tezla-cfg)
-  (flags -g)
-  (modes byte))
-
-(alias
-  (name runtest)
-  (action (run ./main.exe ../../../../tests/)))
