@@ -2,7 +2,9 @@ open Batteries
 
 type loc = Unknown | Loc of int * int
 
-type ident = string
+type var = Tezla.Adt.var
+
+type ident = var
 
 type decl = ident
 
@@ -11,53 +13,44 @@ type typ = Tezla.Adt.typ
 type expr = Tezla.Adt.expr
 
 type stmt =
-  | Cfg_assign of string * expr
+  | Cfg_assign of var * expr
   | Cfg_skip
-  | Cfg_drop of string list
+  | Cfg_drop of var list
   | Cfg_swap
   | Cfg_dig
   | Cfg_dug
-  | Cfg_if of string
-  | Cfg_if_none of string
-  | Cfg_if_left of string
-  | Cfg_if_cons of string
-  | Cfg_loop of string
-  | Cfg_loop_left of string
-  | Cfg_map of string
-  | Cfg_iter of string
-  | Cfg_failwith of string
-  
+  | Cfg_if of var
+  | Cfg_if_none of var
+  | Cfg_if_left of var
+  | Cfg_if_cons of var
+  | Cfg_loop of var
+  | Cfg_loop_left of var
+  | Cfg_map of var
+  | Cfg_iter of var
+  | Cfg_failwith of var
 
 type t = { id : int; stmt : stmt }
 
 let to_string n =
-  let open Format in
+  let open Printf in
+  let open Tezla.Adt in
   let open Tezla.Pp in
-  let () =
-    match n.stmt with
-    | Cfg_assign (s, e) -> fprintf str_formatter "%s := %a" s expr e
-    | Cfg_skip -> fprintf str_formatter "skip"
-    | Cfg_drop l ->
-        let print_list ppf =
-        let pp_sep ppf _ = fprintf ppf "," in
-        let pp_v = pp_print_text in
-        pp_print_list ~pp_sep pp_v ppf
-      in
-      fprintf str_formatter "DROP %a" print_list l
-    | Cfg_swap -> fprintf str_formatter "SWAP"
-    | Cfg_dig -> fprintf str_formatter "DIG"
-    | Cfg_dug -> fprintf str_formatter "DUG"
-    | Cfg_if s -> fprintf str_formatter "IF %s" s
-    | Cfg_if_none s -> fprintf str_formatter "IF_NONE %s" s
-    | Cfg_if_left s -> fprintf str_formatter "IF_LEFT %s" s
-    | Cfg_if_cons s -> fprintf str_formatter "IF_CONS %s" s
-    | Cfg_loop s -> fprintf str_formatter "LOOP %s" s
-    | Cfg_loop_left s -> fprintf str_formatter "LOOP_LEFT %s" s
-    | Cfg_map s -> fprintf str_formatter "MAP %s" s
-    | Cfg_iter s -> fprintf str_formatter "ITER %s" s
-    | Cfg_failwith s -> fprintf str_formatter "FAILWITH %s" s
-  in
-  flush_str_formatter ()
+  match n.stmt with
+  | Cfg_assign (v, e) -> sprintf "%s := %s" v.var_name (string_of_expr e)
+  | Cfg_skip -> "skip"
+  | Cfg_drop l -> sprintf "DROP %s" (string_of_list (fun v -> v.var_name) l)
+  | Cfg_swap -> "SWAP"
+  | Cfg_dig -> "DIG"
+  | Cfg_dug -> "DUG"
+  | Cfg_if v -> sprintf "IF %s" v.var_name
+  | Cfg_if_none v -> sprintf "IF_NONE %s" v.var_name
+  | Cfg_if_left v -> sprintf "IF_LEFT %s" v.var_name
+  | Cfg_if_cons v -> sprintf "IF_CONS %s" v.var_name
+  | Cfg_loop v -> sprintf "LOOP %s" v.var_name
+  | Cfg_loop_left v -> sprintf "LOOP_LEFT %s" v.var_name
+  | Cfg_map v -> sprintf "MAP %s" v.var_name
+  | Cfg_iter v -> sprintf "ITER %s" v.var_name
+  | Cfg_failwith v -> sprintf "FAILWITH %s" v.var_name
 
 let id_counter = ref (-1)
 
@@ -66,8 +59,5 @@ let next_id () =
   !id_counter
 
 let create_node ?id stmt =
-  let id = match id with
-      None -> next_id ()
-    | Some id -> id in
+  let id = match id with None -> next_id () | Some id -> id in
   { id; stmt }
-

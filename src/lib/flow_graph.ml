@@ -166,11 +166,12 @@ module Cfg = struct
     let add_edge (i, j) = connect graph i j in
     let () =
       let open Flow in
-      let { nodes; flow; init_ht; final_ht; _ } = flow counter p_tezla in
+      let _, _, code = p_tezla in
+      let { nodes; flow; init_ht; final_ht; _ } = flow counter code in
       let () = Set.iter (fun b -> add graph "" b) nodes in
-      let init = init init_ht p_tezla in
+      let init = init init_ht code in
       let () = extremal graph init in
-      let finals = final final_ht p_tezla in
+      let finals = final final_ht code in
       let () = Set.iter (fun n -> extremal graph n) finals in
       let () = Hashtbl.replace pBlocks "" nodes in
       Set.iter add_edge flow
