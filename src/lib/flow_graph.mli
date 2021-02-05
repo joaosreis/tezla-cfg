@@ -2,7 +2,8 @@ module Cfg :
   Sig.Flow_graph
     with type vertex = Cfg_node.t
      and type expr = Cfg_node.expr
-     and type program = Michelson.Adt.program
+     and type program =
+          (Michelson.Location.t, Michelson.Adt.annot list) Michelson.Adt.program
 
 (* module Make_inter_cfg
     (F : Sig.Flow

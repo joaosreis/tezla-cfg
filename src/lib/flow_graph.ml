@@ -1,5 +1,6 @@
 module Common = struct
-  type program = Michelson.Adt.program
+  type program =
+    (Michelson.Location.t, Michelson.Adt.annot list) Michelson.Adt.program
 
   type vertex = Cfg_node.t
 
@@ -162,6 +163,14 @@ module Cfg = struct
     let graph = create () in
     let pBlocks = Hashtbl.create 10 in
     let counter = ref (-1) in
+    let p =
+      let open Michelson.Adt in
+      {
+        code = Tezla.Converter.inst_strip_location p.code;
+        param = Tezla.Converter.typ_strip_location p.param;
+        storage = Tezla.Converter.typ_strip_location p.storage;
+      }
+    in
     let p_tezla = Tezla.Converter.convert_program counter p in
     let add_edge (i, j) = connect graph i j in
     let () =
