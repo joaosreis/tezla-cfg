@@ -1,4 +1,4 @@
-(lang dune 1.11)
+(lang dune 2.7)
 
 (name tezla-cfg)
 
@@ -22,7 +22,7 @@
  (synopsis "An CFG generator for Tezla programs")
  (depends
   (dune :build)
-  (michelson :dev)
-  (tezla :dev)
-  (ocamlgraph :dev)
-  (batteries :dev)))
+  michelson
+  tezla
+  ocamlgraph
+  batteries))
