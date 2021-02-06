@@ -31,5 +31,5 @@ build: [
 dev-repo: "git+https://gitlab.com/releaselab/fresco/tezla-cfg.git"
 pin-depends: [
     ["michelson.dev" "git+https://gitlab.com/releaselab/fresco/michelson.git#carthage"]
-    ["tezla.dev" "git+https://gitlab.com/releaselab/fresco/tezla.git#wip2"]
+    ["tezla.dev" "git+https://gitlab.com/releaselab/fresco/tezla.git"]
 ]
