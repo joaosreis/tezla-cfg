@@ -26,9 +26,8 @@ type stmt =
   | Cfg_map of var
   | Cfg_iter of var
   | Cfg_failwith of var
+  | Cfg_return of var
 
 type t = { id : int; stmt : stmt }
-
-val to_string : t -> string
 
 val create_node : ?id:int -> stmt -> t

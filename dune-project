@@ -25,4 +25,5 @@
   michelson
   tezla
   ocamlgraph
-  batteries))
+  batteries
+  (alcotest :with-test)))

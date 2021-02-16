@@ -37,7 +37,7 @@ module type Flow_graph = sig
 
   val outflow : t -> int -> int list
 
-  val add : t -> string -> vertex -> t
+  val add : t -> vertex -> t
 
   val get : t -> int -> vertex
 

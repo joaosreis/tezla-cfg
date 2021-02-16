@@ -5,13 +5,9 @@ module Common = struct
   type expr = Cfg_node.expr
 
   module V = struct
-    type t = Cfg_node.t
+    include Int
 
-    let equal v_1 v_2 = v_1.Cfg_node.id = v_2.Cfg_node.id
-
-    let compare v_1 v_2 = compare v_1.Cfg_node.id v_2.Cfg_node.id
-
-    let hash v = Hashtbl.hash v.Cfg_node.id
+    let hash = Hashtbl.hash
   end
 
   type vertex = V.t
@@ -26,7 +22,7 @@ module Common = struct
   struct
     include G
 
-    let vertex_name v = string_of_int v.Cfg_node.id
+    let vertex_name = string_of_int
 
     let graph_attributes _ = []
 
@@ -46,7 +42,7 @@ module Cfg = struct
   include Common
   module Node_map = Map.Make (Int)
 
-  type t = { flow : G.t; blocks : V.t Node_map.t }
+  type t = { flow : G.t; blocks : Cfg_node.t Node_map.t }
 
   let create () = { flow = G.empty; blocks = Node_map.empty }
 
@@ -56,7 +52,7 @@ module Cfg = struct
 
   let add g v =
     let blocks = Node_map.add v.Cfg_node.id v g.blocks in
-    let flow = G.add_vertex g.flow v in
+    let flow = G.add_vertex g.flow v.Cfg_node.id in
     { flow; blocks }
 
   let get g i = Node_map.find i g.blocks
@@ -68,7 +64,11 @@ module Cfg = struct
   let dot_output g f =
     let module Helper = struct
       let label_to_dot_label v =
-        Printf.sprintf "%d: %s" v.Cfg_node.id (Cfg_node.to_string v)
+        Format.sprintf "%d: %a" v
+          (fun () n ->
+            Pp.pp_node Format.str_formatter n;
+            Format.flush_str_formatter ())
+          (Node_map.find v g.blocks)
 
       let label_to_subgraph _ =
         {
@@ -79,7 +79,7 @@ module Cfg = struct
     end in
     let module Dot_ = Graph.Graphviz.Dot (Display (Helper)) in
     let oc = open_out f in
-    Dot_.output_graph oc g;
+    Dot_.output_graph oc g.flow;
     close_out oc
 
   let display_with_gv g =
@@ -97,19 +97,19 @@ module Cfg = struct
     let open Batteries in
     let graph = create () in
     let counter = ref (-1) in
-    let p =
-      let open Michelson.Adt in
-      {
-        code = Tezla.Converter.inst_strip_location p.code;
-        param = Tezla.Converter.typ_strip_location p.param;
-        storage = Tezla.Converter.typ_strip_location p.storage;
-      }
-    in
-    let p_tezla = Tezla.Converter.convert_program counter p in
-    let add_edge (i, j) graph = connect graph i j in
+    (* let p =
+         let open Michelson.Adt in
+         {
+           code = Tezla.Converter.inst_strip_location p.code;
+           param = Tezla.Converter.typ_strip_location p.param;
+           storage = Tezla.Converter.typ_strip_location p.storage;
+         }
+       in
+       let p_tezla = Tezla.Converter.convert_program counter p in *)
+    let add_edge (i, j) graph = connect graph i.Cfg_node.id j.Cfg_node.id in
     let open Flow in
-    let _, _, code = p_tezla in
-    let { nodes; flow; init_ht; final_ht; _ } = flow counter code in
+    let _, _, code = p in
+    let { nodes; flow; _ } = flow counter code in
     let graph = Set.fold (fun b graph -> add graph b) nodes graph in
     let graph = Set.fold add_edge flow graph in
     graph

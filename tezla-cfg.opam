@@ -12,6 +12,7 @@ depends: [
   "tezla"
   "ocamlgraph"
   "batteries"
+  "alcotest" {with-test}
   "odoc" {with-doc}
 ]
 build: [

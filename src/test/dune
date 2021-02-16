@@ -1,0 +1,4 @@
+(test
+ (name test)
+ (libraries michelson tezla tezla-cfg alcotest)
+ (modes byte))
