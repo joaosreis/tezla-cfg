@@ -66,8 +66,11 @@ module Cfg = struct
       let label_to_dot_label v =
         Format.sprintf "%d: %a" v
           (fun () n ->
-            Pp.pp_node Format.str_formatter n;
-            Format.flush_str_formatter ())
+            let s =
+              Pp.pp_node Format.str_formatter n;
+              Format.flush_str_formatter ()
+            in
+            String.escaped s)
           (Node_map.find v g.blocks)
 
       let label_to_subgraph _ =
