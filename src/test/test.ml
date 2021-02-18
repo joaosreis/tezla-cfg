@@ -8,7 +8,7 @@ let () =
       let adt = parse_file (dir ^ file) in
       let adt = convert adt in
       let tzl = Tezla.Converter.convert_program (ref (-1)) adt in
-      let _ = Tezla_cfg.Flow_graph.Cfg.generate_from_program tzl in
+      let _ = Tezla_cfg.Flow_graph.generate_from_program tzl in
       ()
     in
     let test_f () =
