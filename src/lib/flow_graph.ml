@@ -3,6 +3,8 @@ type program =
 
 type expr = Cfg_node.expr
 
+type var = Cfg_node.var
+
 module V = struct
   include Int
 
@@ -19,6 +21,7 @@ type t = {
   blocks : Cfg_node.t Node_map.t;
   initial : vertex;
   finals : vertex Batteries.Set.t;
+  vars : var list;
 }
 
 module Display (X : sig
@@ -50,6 +53,7 @@ let empty =
     blocks = Node_map.empty;
     initial = 0;
     finals = Batteries.Set.empty;
+    vars = [];
   }
 
 let inflow g = G.pred g.flow
@@ -59,7 +63,10 @@ let outflow g = G.succ g.flow
 let add g v =
   let blocks = Node_map.add v.Cfg_node.id v g.blocks in
   let flow = G.add_vertex g.flow v.Cfg_node.id in
-  { g with flow; blocks }
+  let vars =
+    match v.stmt with Cfg_assign (v, _) -> v :: g.vars | _ -> g.vars
+  in
+  { g with flow; blocks; vars }
 
 let get g i = Node_map.find i g.blocks
 
