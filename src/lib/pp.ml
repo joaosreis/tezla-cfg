@@ -2,9 +2,26 @@ open Format
 
 let pp_node ppf n =
   let open Tezla.Pp in
+  let pp_data ppf =
+    let open Tezla.Adt in
+    function
+    | D_instruction _ -> fprintf ppf "{ ... }"
+    | D_pair (d_1, d_2) -> fprintf ppf "(Pair %a %a)" pp_data d_1 pp_data d_2
+    | D_left d -> fprintf ppf "(Left %a)" pp_data d
+    | D_right d -> fprintf ppf "(Right %a)" pp_data d
+    | D_some d -> fprintf ppf "(Some %a)" pp_data d
+    | D_elt (d_1, d_2) -> fprintf ppf "(Elt %a %a)" pp_data d_1 pp_data d_2
+    | D_list d_l -> List.iter (pp_data ppf) d_l
+    | d -> Tezla.Pp.pp_data ppf d
+  in
   let open Cfg_node in
   match n.stmt with
-  | Cfg_assign (v, e) -> fprintf ppf "%a := %a" pp_var v pp_expr e
+  | Cfg_assign (v, e) -> (
+      match e with
+      | Tezla.Adt.E_lambda _ -> fprintf ppf "%a := LAMBDA { ... }" pp_var v
+      | Tezla.Adt.E_push (d, t) ->
+          fprintf ppf "%a := PUSH %a %a" pp_var v pp_typ t pp_data d
+      | _ -> fprintf ppf "%a := %a" pp_var v pp_expr e )
   | Cfg_skip -> fprintf ppf "skip"
   | Cfg_drop l ->
       fprintf ppf "DROP %a"

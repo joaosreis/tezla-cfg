@@ -118,11 +118,10 @@ let show = display_with_gv
 let generate_from_program p =
   let open Batteries in
   let graph = empty in
-  let counter = ref (-1) in
   let add_edge (i, j) graph = connect graph i j in
   let open Flow in
   let _, _, code = p in
-  let { nodes; flow; initial; finals; _ } = flow counter code in
+  let { nodes; flow; initial; finals; _ } = flow code in
   let graph = Hashtbl.fold (fun _ b graph -> add graph b) nodes graph in
   let graph = Set.fold add_edge flow graph in
   { graph with initial; finals }
