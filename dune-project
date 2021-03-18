@@ -24,6 +24,7 @@
   (dune :build)
   michelson
   tezla
-  ocamlgraph
-  batteries
+  graphlib
+  core_kernel
+  ppx_deriving
   (alcotest :with-test)))

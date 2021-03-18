@@ -1,6 +1,8 @@
+open Core_kernel
+
 type loc = Unknown | Loc of int * int
 
-type var = Tezla.Adt.var
+type var = Tezla.Adt.var [@@deriving ord, sexp]
 
 type ident = Tezla.Adt.var
 
@@ -8,7 +10,7 @@ type decl = ident
 
 type typ = Tezla.Adt.typ
 
-type expr = Tezla.Adt.expr
+type expr = Tezla.Adt.expr [@@deriving ord, sexp]
 
 type stmt =
   | Cfg_assign of var * expr
@@ -28,6 +30,14 @@ type stmt =
   | Cfg_failwith of var
   | Cfg_return of var
 
-type t = { id : int; stmt : stmt }
+type t = { label : int; stmt : stmt } [@@deriving sexp]
 
-val create_node : ?id:int -> stmt -> t
+include Comparable.S with type t := t
+
+include Regular.Std.Opaque.S with type t := t
+
+val compare : t -> t -> int
+
+val create_node : ?label:int -> stmt -> t
+
+val to_string : t -> string

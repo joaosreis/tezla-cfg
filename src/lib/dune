@@ -1,7 +1,8 @@
 (library
  (name tezla_cfg)
  (public_name tezla-cfg)
- (libraries michelson tezla batteries ocamlgraph)
- (modules_without_implementation sig)
+ (libraries michelson tezla core_kernel graphlib)
+ (preprocess
+  (pps ppx_deriving.ord ppx_sexp_conv ppx_string ppx_jane))
  (instrumentation
   (backend bisect_ppx)))

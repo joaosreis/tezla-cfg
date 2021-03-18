@@ -1,4 +1,4 @@
 pin-depends: [
-    ["michelson.dev" "git+https://gitlab.com/releaselab/fresco/michelson.git#carthage"]
+    ["michelson.dev" "git+https://gitlab.com/releaselab/fresco/michelson.git"]
     ["tezla.dev" "git+https://gitlab.com/releaselab/fresco/tezla.git"]
 ]
