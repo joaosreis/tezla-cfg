@@ -18,7 +18,7 @@ type t = {
   graph : G.t;
   mutable initial : Cfg_node.t;
   finals : Set.M(Cfg_node).t;
-  vars : var list;
+  vars : Cfg_node.Var.Set.t;
 }
 
 let empty =
@@ -26,7 +26,7 @@ let empty =
     graph = G.empty;
     initial = { label = -1; stmt = Cfg_node.Cfg_skip };
     finals = Set.empty (module Cfg_node);
-    vars = [];
+    vars = Cfg_node.Var.Set.empty;
   }
 
 let get g l = Sequence.find (G.nodes g.graph) ~f:(Cfg_node.equal l)
@@ -35,8 +35,16 @@ let nodes g = G.nodes g.graph
 
 let connect g e (n_1 : Cfg_node.t) (n_2 : Cfg_node.t) =
   let vars = g.vars in
-  let vars = match n_1.stmt with Cfg_assign (v, _) -> v :: vars | _ -> vars in
-  let vars = match n_2.stmt with Cfg_assign (v, _) -> v :: vars | _ -> vars in
+  let vars =
+    match n_1.stmt with
+    | Cfg_assign (v, _) -> Cfg_node.Var.Set.add vars v
+    | _ -> vars
+  in
+  let vars =
+    match n_2.stmt with
+    | Cfg_assign (v, _) -> Cfg_node.Var.Set.add vars v
+    | _ -> vars
+  in
   let edge = G.Edge.create n_1 n_2 e in
   { g with graph = G.Edge.insert edge g.graph; vars }
 

@@ -2,15 +2,21 @@ open Core_kernel
 
 type loc = Unknown | Loc of int * int
 
-type var = Tezla.Adt.Var.t [@@deriving ord, sexp]
+module Var = Tezla.Adt.Var
 
-type ident = var
+type var = Var.t [@@deriving ord, sexp]
 
-type decl = ident
+type ident = var [@@deriving ord, sexp]
 
-type typ = Tezla.Adt.typ
+type decl = ident [@@deriving ord, sexp]
 
-type expr = Tezla.Adt.expr [@@deriving ord, sexp]
+module Typ = Tezla.Adt.Typ
+
+type typ = Typ.t [@@deriving ord, sexp]
+
+module Expr = Tezla.Adt.Expr
+
+type expr = Expr.t [@@deriving ord, sexp]
 
 type stmt =
   | Cfg_assign of var * expr
@@ -41,12 +47,12 @@ module T = struct
     let stmt_string =
       match s.stmt with
       | Cfg_assign (v, e) -> (
+          [%string "%{v.Var.var_name} : %{v.Var.var_type#Typ} := "]
+          ^
           match e with
-          | Tezla.Adt.E_lambda _ ->
-              [%string "%{v#Tezla.Adt.Var} := LAMBDA { ... }"]
-          | Tezla.Adt.E_push (d, t) ->
-              [%string "%{v#Var} := PUSH %{t#Typ} %{d#Data}"]
-          | _ -> [%string "%{v#Var} := %{e#Expr}"] )
+          | Tezla.Adt.E_lambda _ -> "LAMBDA { ... }"
+          | Tezla.Adt.E_push (d, t) -> [%string "PUSH %{t#Typ} %{d#Data}"]
+          | _ -> Expr.to_string e )
       | Cfg_skip -> "skip"
       | Cfg_drop l -> [%string "DROP %{List.to_string ~f:Var.to_string l}"]
       | Cfg_swap -> "SWAP"

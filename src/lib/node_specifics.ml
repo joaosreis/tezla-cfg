@@ -9,10 +9,10 @@ let find_assignments blocks x =
     | Cfg_loop _ | Cfg_loop_left _ | Cfg_map _ | Cfg_iter _ | Cfg_return _ ->
         acc
   in
-  Set.fold blocks ~init:Tezla.Adt.Var.Set.empty ~f:aux
+  Set.fold blocks ~init:Cfg_node.Var.Set.empty ~f:aux
 
 let free_variables =
-  let module Set = Tezla.Adt.Var.Set in
+  let module Set = Cfg_node.Var.Set in
   let free_variables_expr acc =
     let open Tezla.Adt in
     function

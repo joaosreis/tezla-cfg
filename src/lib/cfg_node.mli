@@ -2,15 +2,21 @@ open Core_kernel
 
 type loc = Unknown | Loc of int * int
 
-type var = Tezla.Adt.var [@@deriving ord, sexp]
+module Var : module type of Tezla.Adt.Var
 
-type ident = Tezla.Adt.var
+type var = Var.t [@@deriving ord, sexp]
 
-type decl = ident
+type ident = var [@@deriving ord, sexp]
 
-type typ = Tezla.Adt.typ
+type decl = ident [@@deriving ord, sexp]
 
-type expr = Tezla.Adt.expr [@@deriving ord, sexp]
+module Typ : module type of Tezla.Adt.Typ
+
+type typ = Typ.t [@@deriving ord, sexp]
+
+module Expr : module type of Tezla.Adt.Expr
+
+type expr = Expr.t [@@deriving ord, sexp]
 
 type stmt =
   | Cfg_assign of var * expr
