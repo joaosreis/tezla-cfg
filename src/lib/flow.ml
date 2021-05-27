@@ -220,7 +220,7 @@ let flow s =
   and flow_data flow =
     let open Tezla.Adt in
     function
-    | D_instruction s -> flow_rec flow s
+    | D_instruction (_, s) -> flow_rec flow s
     | D_unit | D_none | D_int _ | D_string _ | D_bytes _ | D_bool _ -> flow
     | D_left d | D_right d | D_some d -> flow_data flow d
     | D_elt (d_1, d_2) | D_pair (d_1, d_2) -> flow_data (flow_data flow d_1) d_2
