@@ -49,7 +49,7 @@ module T = struct
       | Cfg_assign (v, e) -> (
           [%string "%{v.Var.var_name} : %{v.Var.var_type#Typ} := "]
           ^
-          match e with
+          match e.value with
           | Tezla.Adt.E_lambda _ -> "LAMBDA { ... }"
           | Tezla.Adt.E_push (d, t) -> [%string "PUSH %{t#Typ} %{d#Data}"]
           | _ -> Expr.to_string e )

@@ -1,10 +1,7 @@
 open Core_kernel
 open Graphlib.Std
 
-type program =
-  ( Michelson.Loc.t,
-    Michelson.Carthage.Adt.annot list )
-  Michelson.Carthage.Adt.program
+type program = Michelson.Carthage.Adt.program
 
 type expr = Cfg_node.expr
 

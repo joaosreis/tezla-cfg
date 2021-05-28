@@ -1,4 +1,5 @@
 pin-depends: [
-    ["michelson.dev" "git+https://gitlab.com/releaselab/fresco/michelson.git"]
-    ["tezla.dev" "git+https://gitlab.com/releaselab/fresco/tezla.git"]
+    ["michelson-adt.dev" "git+https://github.com/releaselab/michelson-adt.git"]
+    ["michelson-parser.dev" "git+https://github.com/releaselab/michelson-parser.git"]
+    ["tezla.dev" "git+https://github.com/releaselab/tezla.git"]
 ]

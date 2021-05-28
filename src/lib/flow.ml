@@ -1,4 +1,5 @@
 open Core_kernel
+open Tezla.Adt
 
 type node = Cfg_node.t [@@deriving ord, sexp]
 
@@ -16,7 +17,7 @@ end
 module Stmt = struct
   type t = Tezla.Adt.stmt [@@deriving ord, sexp]
 
-  let hash s = Int.hash s.Tezla.Adt.id
+  let hash s = Int.hash s.Tezla.Adt.Node.id
 end
 
 type t = {
@@ -26,7 +27,7 @@ type t = {
 }
 
 let rec init ht n =
-  match n.Tezla.Adt.stm with
+  match n.Tezla.Adt.Node.value with
   | S_seq (s, _) -> init ht s
   | S_assign _ | S_skip | S_map _ | S_failwith _ | S_swap | S_dig | S_dug
   | S_drop _ | S_return _ | S_iter _ | S_loop _ | S_loop_left _ | S_if _
@@ -40,7 +41,7 @@ let rec init ht n =
 let final ht =
   let open Tezla.Adt in
   let rec final_rec acc n =
-    match n.stm with
+    match n.Node.value with
     | S_if (_, x, y)
     | S_if_cons (_, x, y)
     | S_if_left (_, x, y)
@@ -94,7 +95,7 @@ let flow s =
       in
       flow
     in
-    match s.stm with
+    match s.value with
     | S_if (c, x, y) -> if_p (Cfg_if c) x y
     | S_if_cons (c, x, y) -> if_p (Cfg_if_cons c) x y
     | S_if_left (c, x, y) -> if_p (Cfg_if_left c) x y
@@ -167,9 +168,9 @@ let flow s =
         let () = Hashtbl.set init_ht ~key:s ~data:n in
         let () = Hashtbl.set final_ht ~key:s ~data:n in
         flow
-  and flow_lambda flow =
+  and flow_lambda flow e =
     let open Tezla.Adt in
-    function
+    match e.value with
     | E_lambda (_, _, _, s) -> flow_rec flow s
     | E_push (d, _) -> flow_data flow d
     | E_unit | E_self | E_now | E_amount | E_balance | E_source | E_sender
@@ -217,9 +218,9 @@ let flow s =
     | E_special_empty_map (_, _)
     | E_var _ ->
         flow
-  and flow_data flow =
+  and flow_data flow d =
     let open Tezla.Adt in
-    function
+    match d.value with
     | D_instruction (_, s) -> flow_rec flow s
     | D_unit | D_none | D_int _ | D_string _ | D_bytes _ | D_bool _ -> flow
     | D_left d | D_right d | D_some d -> flow_data flow d

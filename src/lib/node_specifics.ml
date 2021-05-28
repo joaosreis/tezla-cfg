@@ -13,9 +13,9 @@ let find_assignments blocks x =
 
 let free_variables =
   let module Set = Cfg_node.Var.Set in
-  let free_variables_expr acc =
+  let free_variables_expr acc e =
     let open Tezla.Adt in
-    function
+    match e.Node.value with
     | E_unit | E_self | E_now | E_amount | E_balance | E_source | E_sender
     | E_none _
     | E_push (_, _)

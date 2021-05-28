@@ -22,7 +22,8 @@
  (synopsis "An CFG generator for Tezla programs")
  (depends
   (dune :build)
-  michelson
+  michelson-adt
+  michelson-parser
   tezla
   graphlib
   core_kernel
