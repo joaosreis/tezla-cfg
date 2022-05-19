@@ -1,7 +1,7 @@
 (library
  (name tezla_cfg)
  (public_name tezla-cfg)
- (libraries michelson tezla core_kernel graphlib)
+ (libraries michelson-adt.edo tezla core graphlib)
  (preprocess
   (pps ppx_deriving.ord ppx_sexp_conv ppx_string ppx_jane))
  (instrumentation

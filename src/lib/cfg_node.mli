@@ -1,22 +1,20 @@
-open Core_kernel
+open! Core
 
 type loc = Unknown | Loc of int * int
 
 module Var : module type of Tezla.Adt.Var
 
 type var = Var.t [@@deriving ord, sexp]
-
 type ident = var [@@deriving ord, sexp]
-
 type decl = ident [@@deriving ord, sexp]
 
-module Typ : module type of Tezla.Adt.Typ
+module Typ : module type of Edo_adt.Adt.Typ
 
 type typ = Typ.t [@@deriving ord, sexp]
 
 module Expr : module type of Tezla.Adt.Expr
 
-type expr = Expr.t [@@deriving ord, sexp]
+type expr = Expr.t [@@deriving sexp]
 
 type stmt =
   | Cfg_assign of var * expr
@@ -39,11 +37,8 @@ type stmt =
 type t = { label : int; stmt : stmt } [@@deriving sexp]
 
 include Comparable.S with type t := t
-
-include Regular.Std.Opaque.S with type t := t
+include Hashable.S with type t := t
 
 val compare : t -> t -> int
-
 val create_node : ?label:int -> stmt -> t
-
 val to_string : t -> string

@@ -1,4 +1,9 @@
 (test
  (name test)
- (libraries michelson tezla tezla-cfg alcotest)
- (modes byte))
+ (libraries
+  core
+  core_unix.sys_unix
+  michelson-adt.edo
+  tezla
+  tezla-cfg
+  alcotest))

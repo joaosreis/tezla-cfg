@@ -1,0 +1,10 @@
+(executable
+ (name tezcfg)
+ (public_name tezcfg)
+ (libraries
+  michelson-adt.edo
+  michelson-parser.edo
+  tezla
+  tezla-cfg
+  cmdliner
+  core))

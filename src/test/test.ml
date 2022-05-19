@@ -1,20 +1,18 @@
-open Core_kernel
+open! Core
 
 let () =
   let dir = "../../../../tests/" in
-  let files = Sys.readdir dir in
+  let files = Sys_unix.readdir dir in
   let open Alcotest in
   let create_test filename =
-    let open Michelson.Carthage.Parse in
     let convert_f () =
-      match parse_program (dir ^ filename) with
-      | Ok adt ->
-          let adt, _ = program_parse adt in
-          let tzl = Tezla.Converter.convert_program (ref (-1)) adt in
-          let g = Tezla_cfg.Flow_graph.generate_from_program tzl in
-          let () = Tezla_cfg.Flow_graph.dot_output g "cfg.dot" in
-          check pass "Ok" () ()
-      | Error e -> fail ("Generate CFG error: " ^ Error.to_string_hum e)
+      let adt = Edo_parser.Parser.parse_file (dir ^ filename) in
+      let adt = Edo_parser.Parser.convert (dir ^ filename) adt in
+      let adt = Edo_adt.Typer.type_program adt in
+      let tzl = Tezla.Converter.convert_program (ref (-1)) adt in
+      let g = Tezla_cfg.Flow_graph.generate_from_program tzl in
+      let () = Tezla_cfg.Flow_graph.dot_output g "cfg.dot" in
+      check pass "Ok" () ()
     in
     test_case filename `Quick convert_f
   in

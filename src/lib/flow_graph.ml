@@ -1,12 +1,9 @@
-open Core_kernel
+open! Core
 open Graphlib.Std
 
-type program = Michelson.Carthage.Adt.program
-
+type program = Edo_adt.Adt.program
 type expr = Cfg_node.expr
-
 type var = Cfg_node.var
-
 type node = Cfg_node.t [@@deriving ord, sexp]
 
 module G = Graphlib.Make (Cfg_node) (Edge)
@@ -27,7 +24,6 @@ let empty =
   }
 
 let get g l = Sequence.find (G.nodes g.graph) ~f:(Cfg_node.equal l)
-
 let nodes g = G.nodes g.graph
 
 let connect g e (n_1 : Cfg_node.t) (n_2 : Cfg_node.t) =
@@ -46,7 +42,6 @@ let connect g e (n_1 : Cfg_node.t) (n_2 : Cfg_node.t) =
   { g with graph = G.Edge.insert edge g.graph; vars }
 
 let is_initial g v = Cfg_node.equal g.initial v
-
 let is_final g v = Set.exists g.finals ~f:(Cfg_node.equal v)
 
 let dot_output g filename =

@@ -1,8 +1,7 @@
-open Core_kernel
+open! Core
 open Tezla.Adt
 
 type node = Cfg_node.t [@@deriving ord, sexp]
-
 type edge = Edge.t * node * node [@@deriving ord, sexp]
 
 module Flow_edge = struct
@@ -15,8 +14,9 @@ module Flow_edge = struct
 end
 
 module Stmt = struct
-  type t = Tezla.Adt.stmt [@@deriving ord, sexp]
+  type t = Tezla.Adt.stmt [@@deriving sexp]
 
+  let compare a b = Int.compare a.Common_adt.Node.id b.Common_adt.Node.id
   let hash s = Int.hash s.Tezla.Adt.Node.id
 end
 
@@ -36,7 +36,7 @@ let rec init ht n =
       | None ->
           Debug.amf [%here] "initial not found";
           raise (Not_found_s (Stmt.sexp_of_t n))
-      | Some x -> x )
+      | Some x -> x)
 
 let final ht =
   let open Tezla.Adt in
@@ -171,8 +171,8 @@ let flow s =
   and flow_lambda flow e =
     let open Tezla.Adt in
     match e.value with
-    | E_lambda (_, _, _, s) -> flow_rec flow s
-    | E_push (d, _) -> flow_data flow d
+    | E_lambda (_, _, s) -> flow_rec flow s
+    | E_push d -> flow_data flow d
     | E_unit | E_self | E_now | E_amount | E_balance | E_source | E_sender
     | E_chain_id | E_car _ | E_cdr _ | E_abs _ | E_neg _ | E_not _
     | E_add (_, _)
@@ -207,7 +207,7 @@ let flow s =
     | E_address_of_contract _
     | E_create_contract_address (_, _, _, _)
     | E_unlift_option _ | E_unlift_or_left _ | E_unlift_or_right _ | E_hd _
-    | E_tl _ | E_size _ | E_isnat _ | E_int_of_nat _
+    | E_tl _ | E_isnat _ | E_int_of_nat _
     | E_exec (_, _)
     | E_dup _ | E_nil _ | E_empty_set _
     | E_empty_map (_, _)
@@ -216,16 +216,36 @@ let flow s =
     | E_append (_, _)
     | E_special_empty_list _
     | E_special_empty_map (_, _)
-    | E_var _ ->
+    | E_total_voting_power | E_self_address | E_level | E_size _
+    | E_create_account_operation (_, _, _, _)
+    | E_create_account_address (_, _, _, _)
+    | E_voting_power _ | E_keccak _ | E_sha3 _ | E_pairing_check _
+    | E_sapling_verify_update (_, _)
+    | E_sapling_empty_state _
+    | E_ticket (_, _)
+    | E_read_ticket_pair _ | E_read_ticket_ticket _
+    | E_split_ticket (_, _)
+    | E_join_ticket _
+    | E_open_chest (_, _, _)
+    | E_get_and_update_val (_, _, _)
+    | E_get_and_update_map (_, _, _)
+    | E_dup_n (_, _)
+    | E_get_n (_, _)
+    | E_update_n (_, _, _)
+    | E_var _ | E_pair_n _ ->
         flow
   and flow_data flow d =
     let open Tezla.Adt in
-    match d.value with
+    match snd d.value with
     | D_instruction (_, s) -> flow_rec flow s
     | D_unit | D_none | D_int _ | D_string _ | D_bytes _ | D_bool _ -> flow
     | D_left d | D_right d | D_some d -> flow_data flow d
-    | D_elt (d_1, d_2) | D_pair (d_1, d_2) -> flow_data (flow_data flow d_1) d_2
+    | D_pair (d_1, d_2) -> flow_data (flow_data flow d_1) d_2
     | D_list d_l -> List.fold_left ~f:flow_data ~init:flow d_l
+    | D_map d_l ->
+        List.fold_left
+          ~f:(fun acc (d_1, d_2) -> flow_data (flow_data acc d_1) d_2)
+          ~init:flow d_l
   in
   let flow = flow_rec (Set.empty (module Flow_edge)) s in
   let initial = init init_ht s in

@@ -5,17 +5,17 @@
 (generate_opam_files true)
 
 (source
- (uri "git+https://gitlab.com/releaselab/fresco/tezla-cfg.git"))
+ (uri "git+https://github.com/joaosreis/tezla-cfg.git"))
 
-(bug_reports "https://gitlab.com/releaselab/fresco/tezla-cfg/issues")
+(bug_reports "https://github.com/joaosreis/tezla-cfg/issues")
 
-(homepage "https://gitlab.com/releaselab/fresco/tezla-cfg")
+(homepage "https://github.com/joaosreis/tezla-cfg")
 
 (license MIT)
 
-(authors "Jo\195\163o Santos Reis <joao.reis@ubi.pt>")
+(authors "Jo\195\163o Santos Reis <joaosreis@outlook.pt>")
 
-(maintainers "Jo\195\163o Santos Reis <joao.reis@ubi.pt>")
+(maintainers "Jo\195\163o Santos Reis <joaosreis@outlook.pt>")
 
 (package
  (name tezla-cfg)
@@ -25,7 +25,12 @@
   michelson-adt
   michelson-parser
   tezla
-  graphlib
-  core_kernel
+  (core
+   (>= v0.15))
+  (core_unix
+   (>= v0.15))
   ppx_deriving
+  (graphlib
+   (= master))
+  cmdliner
   (alcotest :with-test)))

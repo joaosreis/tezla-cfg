@@ -1,4 +1,4 @@
-open Core_kernel
+open! Core
 
 let find_assignments blocks x =
   let aux acc = function
@@ -17,15 +17,14 @@ let free_variables =
     let open Tezla.Adt in
     match e.Node.value with
     | E_unit | E_self | E_now | E_amount | E_balance | E_source | E_sender
-    | E_none _
-    | E_push (_, _)
-    | E_nil _ | E_empty_set _
+    | E_none _ | E_push _ | E_nil _ | E_empty_set _
     | E_empty_map (_, _)
     | E_empty_big_map (_, _)
-    | E_lambda (_, _, _, _)
+    | E_lambda (_, _, _)
     | E_special_empty_list _
     | E_special_empty_map (_, _)
-    | E_chain_id ->
+    | E_chain_id | E_total_voting_power | E_self_address | E_level
+    | E_sapling_empty_state _ ->
         acc
     | E_car v
     | E_cdr v
@@ -55,12 +54,21 @@ let free_variables =
     | E_unlift_or_right v
     | E_hd v
     | E_tl v
-    | E_size v
     | E_isnat v
     | E_int_of_nat v
     | E_dup v
     | E_some v
-    | E_var v ->
+    | E_var v
+    | E_size v
+    | E_voting_power v
+    | E_keccak v
+    | E_sha3 v
+    | E_pairing_check v
+    | E_read_ticket_pair v
+    | E_read_ticket_ticket v
+    | E_join_ticket v
+    | E_get_n (_, v)
+    | E_dup_n (_, v) ->
         Set.add acc v
     | E_operation o -> (
         match o with
@@ -69,7 +77,7 @@ let free_variables =
         | O_create_contract (_, v_1, v_2, v_3)
         | O_transfer_tokens (v_1, v_2, v_3) ->
             Set.add (Set.add (Set.add acc v_1) v_2) v_3
-        | O_set_delegate v -> Set.add acc v )
+        | O_set_delegate v -> Set.add acc v)
     | E_add (v_1, v_2)
     | E_sub (v_1, v_2)
     | E_mul (v_1, v_2)
@@ -87,13 +95,24 @@ let free_variables =
     | E_apply (v_1, v_2)
     | E_append (v_1, v_2)
     | E_exec (v_1, v_2)
-    | E_get (v_1, v_2) ->
+    | E_get (v_1, v_2)
+    | E_sapling_verify_update (v_1, v_2)
+    | E_ticket (v_1, v_2)
+    | E_split_ticket (v_1, v_2)
+    | E_update_n (_, v_1, v_2) ->
         Set.add (Set.add acc v_1) v_2
     | E_update (v_1, v_2, v_3)
     | E_slice (v_1, v_2, v_3)
     | E_create_contract_address (_, v_1, v_2, v_3)
+    | E_open_chest (v_1, v_2, v_3)
+    | E_get_and_update_val (v_1, v_2, v_3)
+    | E_get_and_update_map (v_1, v_2, v_3)
     | E_check_signature (v_1, v_2, v_3) ->
         Set.add (Set.add (Set.add acc v_1) v_2) v_3
+    | E_create_account_address (v_1, v_2, v_3, v_4)
+    | E_create_account_operation (v_1, v_2, v_3, v_4) ->
+        Set.add (Set.add (Set.add (Set.add acc v_1) v_2) v_3) v_4
+    | E_pair_n v_l -> Set.of_list v_l |> Set.union acc
   in
   let empty_set = Set.empty in
   function

@@ -1,22 +1,20 @@
-open Core_kernel
+open! Core
 
 type loc = Unknown | Loc of int * int
 
 module Var = Tezla.Adt.Var
 
 type var = Var.t [@@deriving ord, sexp]
-
 type ident = var [@@deriving ord, sexp]
-
 type decl = ident [@@deriving ord, sexp]
 
-module Typ = Tezla.Adt.Typ
+module Typ = Edo_adt.Adt.Typ
 
 type typ = Typ.t [@@deriving ord, sexp]
 
 module Expr = Tezla.Adt.Expr
 
-type expr = Expr.t [@@deriving ord, sexp]
+type expr = Expr.t [@@deriving sexp]
 
 type stmt =
   | Cfg_assign of var * expr
@@ -38,21 +36,19 @@ type stmt =
 [@@deriving sexp]
 
 module T = struct
-  type t = { label : int; stmt : stmt } [@@deriving sexp]
-
-  let hash x = Int.hash x.label
+  type t = { label : int; stmt : stmt [@hash.ignore] } [@@deriving sexp, hash]
 
   let to_string s =
     let open Tezla.Adt in
     let stmt_string =
       match s.stmt with
       | Cfg_assign (v, e) -> (
-          [%string "%{v.Var.var_name} : %{v.Var.var_type#Typ} := "]
+          [%string "%{v.Var.var_name} : %{(v.Var.var_type)#Edo_adt.Typ} := "]
           ^
           match e.value with
           | Tezla.Adt.E_lambda _ -> "LAMBDA { ... }"
-          | Tezla.Adt.E_push (d, t) -> [%string "PUSH %{t#Typ} %{d#Data}"]
-          | _ -> Expr.to_string e )
+          | Tezla.Adt.E_push d -> [%string "PUSH %{d#Data}"]
+          | _ -> Expr.to_string e)
       | Cfg_skip -> "skip"
       | Cfg_drop l -> [%string "DROP %{List.to_string ~f:Var.to_string l}"]
       | Cfg_swap -> "SWAP"
@@ -76,7 +72,7 @@ end
 
 include T
 include Comparable.Make (T)
-include Regular.Std.Opaque.Make (T)
+include Hashable.Make (T)
 
 let label_counter = ref (-1)
 
