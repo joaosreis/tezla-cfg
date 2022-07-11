@@ -29,9 +29,10 @@ type t = {
 let rec init ht n =
   match n.Tezla.Adt.Node.value with
   | S_seq (s, _) -> init ht s
-  | S_assign _ | S_skip | S_map _ | S_failwith _ | S_swap | S_dig | S_dug
-  | S_drop _ | S_return _ | S_iter _ | S_loop _ | S_loop_left _ | S_if _
-  | S_if_cons _ | S_if_left _ | S_if_none _ -> (
+  | S_assign _ | S_skip | S_map_list _ | S_map_map _ | S_failwith _ | S_swap
+  | S_dig _ | S_dug _ | S_drop _ | S_return _ | S_iter_list _ | S_iter_set _
+  | S_iter_map _ | S_loop _ | S_loop_left _ | S_if _ | S_if_cons _ | S_if_left _
+  | S_if_none _ -> (
       match Hashtbl.find ht n with
       | None ->
           Debug.amf [%here] "initial not found";
@@ -48,8 +49,9 @@ let final ht =
     | S_if_none (_, x, y) ->
         final_rec (final_rec acc x) y
     | S_seq (_, x) -> final_rec acc x
-    | S_assign _ | S_skip | S_failwith _ | S_swap | S_dig | S_dug | S_drop _
-    | S_loop _ | S_loop_left _ | S_iter _ | S_map _ | S_return _ ->
+    | S_assign _ | S_skip | S_failwith _ | S_swap | S_dig _ | S_dug _ | S_drop _
+    | S_loop _ | S_loop_left _ | S_iter_list _ | S_iter_set _ | S_iter_map _
+    | S_map_list _ | S_map_map _ | S_return _ ->
         let f =
           match Hashtbl.find ht n with
           | None ->
@@ -102,9 +104,22 @@ let flow s =
     | S_if_none (c, x, y) -> if_p (Cfg_if_none c) x y
     | S_loop (c, b) -> loop_p (Cfg_loop c) b
     | S_loop_left (c, b) -> loop_p (Cfg_loop_left c) b
-    | S_iter (c, b) -> loop_p (Cfg_iter c) b
-    | S_map (c, b) ->
-        let c_node = new_node (Cfg_map c) in
+    | (S_iter_list (c, b) | S_iter_set (c, b) | S_iter_map (c, b)) as i ->
+        loop_p
+          (match i with
+          | S_iter_list (_, _) -> Cfg_iter_list c
+          | S_iter_set (_, _) -> Cfg_iter_set c
+          | S_iter_map (_, _) -> Cfg_iter_map c
+          | _ -> assert false)
+          b
+    | (S_map_list (c, b) | S_map_map (c, b)) as i ->
+        let c_node =
+          new_node
+            (match i with
+            | S_map_list _ -> Cfg_map_list c
+            | S_map_map _ -> Cfg_map_map c
+            | _ -> assert false)
+        in
         let () = Hashtbl.set init_ht ~key:s ~data:c_node in
         let () = Hashtbl.set final_ht ~key:s ~data:c_node in
         let flow = flow_rec flow b in
@@ -137,13 +152,13 @@ let flow s =
         let () = Hashtbl.set init_ht ~key:s ~data:n in
         let () = Hashtbl.set final_ht ~key:s ~data:n in
         flow
-    | S_dig ->
-        let n = new_node Cfg_dig in
+    | S_dig n ->
+        let n = new_node (Cfg_dig n) in
         let () = Hashtbl.set init_ht ~key:s ~data:n in
         let () = Hashtbl.set final_ht ~key:s ~data:n in
         flow
-    | S_dug ->
-        let n = new_node Cfg_dug in
+    | S_dug n ->
+        let n = new_node (Cfg_dug n) in
         let () = Hashtbl.set init_ht ~key:s ~data:n in
         let () = Hashtbl.set final_ht ~key:s ~data:n in
         flow
@@ -174,16 +189,46 @@ let flow s =
     | E_lambda (_, _, s) -> flow_rec flow s
     | E_push d -> flow_data flow d
     | E_unit | E_self | E_now | E_amount | E_balance | E_source | E_sender
-    | E_chain_id | E_car _ | E_cdr _ | E_abs _ | E_neg _ | E_not _
-    | E_add (_, _)
-    | E_sub (_, _)
-    | E_mul (_, _)
-    | E_div (_, _)
-    | E_shiftL (_, _)
-    | E_shiftR (_, _)
-    | E_and (_, _)
-    | E_or (_, _)
-    | E_xor (_, _)
+    | E_chain_id | E_car _ | E_cdr _ | E_abs _ | E_neg_bls12_381_fr _
+    | E_neg_bls12_381_g1 _ | E_neg_bls12_381_g2 _ | E_neg_int _ | E_neg_nat _
+    | E_not_bool _ | E_not_nat _ | E_not_int _
+    | E_add_bls12_381_fr (_, _)
+    | E_add_bls12_381_g1 (_, _)
+    | E_add_bls12_381_g2 (_, _)
+    | E_add_int (_, _)
+    | E_add_mutez (_, _)
+    | E_add_nat (_, _)
+    | E_add_nat_int (_, _)
+    | E_add_timestamp_int (_, _)
+    | E_sub_int (_, _)
+    | E_sub_nat (_, _)
+    | E_sub_nat_int (_, _)
+    | E_sub_mutez (_, _)
+    | E_sub_timestamp (_, _)
+    | E_sub_timestamp_int (_, _)
+    | E_mul_bls12_381_fr_bls12_381_fr (_, _)
+    | E_mul_bls12_381_g1_bls12_381_fr (_, _)
+    | E_mul_bls12_381_g2_bls12_381_fr (_, _)
+    | E_mul_int (_, _)
+    | E_mul_nat (_, _)
+    | E_mul_nat_int (_, _)
+    | E_mul_mutez_nat (_, _)
+    | E_mul_int_bls12_381_fr (_, _)
+    | E_mul_nat_bls12_381_fr (_, _)
+    | E_ediv_int (_, _)
+    | E_ediv_nat (_, _)
+    | E_ediv_nat_int (_, _)
+    | E_ediv_mutez (_, _)
+    | E_ediv_mutez_nat (_, _)
+    | E_lsl (_, _)
+    | E_lsr (_, _)
+    | E_and_bool (_, _)
+    | E_and_int_nat (_, _)
+    | E_and_nat (_, _)
+    | E_or_bool (_, _)
+    | E_or_nat (_, _)
+    | E_xor_bool (_, _)
+    | E_xor_nat (_, _)
     | E_eq _ | E_neq _ | E_lt _ | E_gt _ | E_leq _ | E_geq _
     | E_compare (_, _)
     | E_cons (_, _)
@@ -192,12 +237,19 @@ let flow s =
     | E_left (_, _)
     | E_right (_, _)
     | E_some _ | E_none _
-    | E_mem (_, _)
-    | E_get (_, _)
-    | E_update (_, _, _)
-    | E_concat (_, _)
-    | E_concat_list _
-    | E_slice (_, _, _)
+    | E_mem_set (_, _)
+    | E_mem_map (_, _)
+    | E_mem_big_map (_, _)
+    | E_get_map (_, _)
+    | E_get_big_map (_, _)
+    | E_update_set (_, _, _)
+    | E_update_map (_, _, _)
+    | E_update_big_map (_, _, _)
+    | E_concat_bytes (_, _)
+    | E_concat_string (_, _)
+    | E_concat_list_string _ | E_concat_list_bytes _
+    | E_slice_bytes (_, _, _)
+    | E_slice_string (_, _, _)
     | E_pack _
     | E_unpack (_, _)
     | E_contract_of_address (_, _)
@@ -213,11 +265,11 @@ let flow s =
     | E_empty_map (_, _)
     | E_empty_big_map (_, _)
     | E_apply (_, _)
-    | E_append (_, _)
+    | E_list_append (_, _)
     | E_special_empty_list _
     | E_special_empty_map (_, _)
-    | E_total_voting_power | E_self_address | E_level | E_size _
-    | E_create_account_operation (_, _, _, _)
+    | E_total_voting_power | E_self_address | E_level | E_size_bytes _
+    | E_size_string _ | E_size_list _ | E_size_set _ | E_size_map _
     | E_create_account_address (_, _, _, _)
     | E_voting_power _ | E_keccak _ | E_sha3 _ | E_pairing_check _
     | E_sapling_verify_update (_, _)

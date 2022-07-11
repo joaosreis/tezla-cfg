@@ -30,7 +30,6 @@
   (core_unix
    (>= v0.15))
   ppx_deriving
-  (graphlib
-   (= master))
+  graphlib
   cmdliner
   (alcotest :with-test)))

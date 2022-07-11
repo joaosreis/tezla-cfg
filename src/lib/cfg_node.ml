@@ -21,16 +21,19 @@ type stmt =
   | Cfg_skip
   | Cfg_drop of var list
   | Cfg_swap
-  | Cfg_dig
-  | Cfg_dug
+  | Cfg_dig of Bigint.t
+  | Cfg_dug of Bigint.t
   | Cfg_if of var
   | Cfg_if_none of var
   | Cfg_if_left of var
   | Cfg_if_cons of var
   | Cfg_loop of var
   | Cfg_loop_left of var
-  | Cfg_map of var
-  | Cfg_iter of var
+  | Cfg_map_list of var
+  | Cfg_map_map of var
+  | Cfg_iter_list of var
+  | Cfg_iter_set of var
+  | Cfg_iter_map of var
   | Cfg_failwith of var
   | Cfg_return of var
 [@@deriving sexp]
@@ -52,16 +55,19 @@ module T = struct
       | Cfg_skip -> "skip"
       | Cfg_drop l -> [%string "DROP %{List.to_string ~f:Var.to_string l}"]
       | Cfg_swap -> "SWAP"
-      | Cfg_dig -> "DIG"
-      | Cfg_dug -> "DUG"
+      | Cfg_dig n -> [%string "DIG %{n#Bigint}"]
+      | Cfg_dug n -> [%string "DUG %{n#Bigint}"]
       | Cfg_if v -> [%string "IF %{v#Var}"]
       | Cfg_if_none v -> [%string "IF_NONE %{v#Var}"]
       | Cfg_if_left v -> [%string "IF_LEFT %{v#Var}"]
       | Cfg_if_cons v -> [%string "IF_CONS %{v#Var}"]
       | Cfg_loop v -> [%string "LOOP %{v#Var}"]
       | Cfg_loop_left v -> [%string "LOOP_LEFT %{v#Var}"]
-      | Cfg_map v -> [%string "MAP %{v#Var}"]
-      | Cfg_iter v -> [%string "ITER %{v#Var}"]
+      | Cfg_map_list v -> [%string "MAP_list %{v#Var}"]
+      | Cfg_map_map v -> [%string "MAP_map %{v#Var}"]
+      | Cfg_iter_list v -> [%string "ITER_list %{v#Var}"]
+      | Cfg_iter_set v -> [%string "ITER_set %{v#Var}"]
+      | Cfg_iter_map v -> [%string "ITER_map %{v#Var}"]
       | Cfg_failwith v -> [%string "FAILWITH %{v#Var}"]
       | Cfg_return v -> [%string "return %{v#Var}"]
     in

@@ -21,16 +21,19 @@ type stmt =
   | Cfg_skip
   | Cfg_drop of var list
   | Cfg_swap
-  | Cfg_dig
-  | Cfg_dug
+  | Cfg_dig of Bigint.t
+  | Cfg_dug of Bigint.t
   | Cfg_if of var
   | Cfg_if_none of var
   | Cfg_if_left of var
   | Cfg_if_cons of var
   | Cfg_loop of var
   | Cfg_loop_left of var
-  | Cfg_map of var
-  | Cfg_iter of var
+  | Cfg_map_list of var
+  | Cfg_map_map of var
+  | Cfg_iter_list of var
+  | Cfg_iter_set of var
+  | Cfg_iter_map of var
   | Cfg_failwith of var
   | Cfg_return of var
 
