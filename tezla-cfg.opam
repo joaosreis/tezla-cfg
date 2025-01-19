@@ -11,10 +11,10 @@ depends: [
   "michelson-adt"
   "michelson-parser"
   "tezla"
-  "core" {>= "v0.15"}
-  "core_unix" {>= "v0.15"}
+  "core" {>= "v0.14" & < "v0.15"}
+  "core_unix" {>= "v0.14" & < "v0.15"}
   "ppx_deriving"
-  "graphlib"
+  "graphlib" {>= "2.5.0"}
   "cmdliner"
   "alcotest" {with-test}
   "odoc" {with-doc}

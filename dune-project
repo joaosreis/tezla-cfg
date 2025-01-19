@@ -26,10 +26,12 @@
   michelson-parser
   tezla
   (core
-   (>= v0.15))
+   (and (>= v0.14)
+   (< v0.15)))
   (core_unix
-   (>= v0.15))
+   (and (>= v0.14)
+   (< v0.15)))
   ppx_deriving
-  graphlib
+  (graphlib (>= 2.5.0))
   cmdliner
   (alcotest :with-test)))
